@@ -2,6 +2,7 @@ import cherrypy
 from cherrypy import tools
 import simplejson as json
 import requests
+import os
 
 '''
     author: @plamere
@@ -40,12 +41,14 @@ own unique values.
 
 '''
 
-# CHANGE these values to your own 
-k_client_id = "spotify-ios-sdk-beta"
-k_client_secret = "ba95c775e4b39b8d60b27bcfced57ba473c10046"
-k_client_callback_url = "spotify-ios-sdk-beta://callback"
+ENVIRONMENT = os.environ.get('ENVIRONMENT', 'production')
 
-verbose = True
+CLIENT_ID = os.environ.get('CLIENT_ID')
+CLIENT_SECRET = os.environ.get('CLIENT_SECRET')
+CALLBACK_URL = os.environ.get('CALLBACK_URL')
+
+SPOTIFY_TOKEN_URL = os.environ.get('SPOTIFY_TOKEN_URL', 'https://accounts.spotify.com/api/token')
+
 
 class SpotifyTokenSwap(object):
     @cherrypy.expose
@@ -53,14 +56,15 @@ class SpotifyTokenSwap(object):
     def swap(self, code=None):
         params = {
             'grant_type': 'authorization_code',
-            'client_id': k_client_id,
-            'client_secret': k_client_secret,
-            'redirect_uri': k_client_callback_url,
+            'client_id': CLIENT_ID,
+            'client_secret': CLIENT_SECRET,
+            'redirect_uri': CALLBACK_URL,
             'code' : code
         }
-        r = requests.post('https://ws.spotify.com/oauth/token', params)
+        r = requests.post(SPOTIFY_TOKEN_URL, params)
         cherrypy.response.status = r.status_code
-        if verbose:
+
+        if ENVIRONMENT != 'production':
             print
             print code
             print r.status_code
@@ -81,7 +85,7 @@ if __name__ == '__main__':
             'server.socket_host' : '0.0.0.0',
             'server.socket_port' : 9020,
             'server.thread_pool' : 10,
-            # 'environment' : 'production',
+            'environment' : ENVIRONMENT,
         },
         '/' : {
             'tools.CORS.on' : True,
