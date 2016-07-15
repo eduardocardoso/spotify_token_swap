@@ -33,7 +33,7 @@ class SpotifyTokenSwap(object):
         return r.json()
 
     @cherrypy.expose
-    @tools.json_out
+    @tools.json_out()
     def refresh(self, refresh_token=None):
         headers = {
             'Authorization': AUTH_HEADER
